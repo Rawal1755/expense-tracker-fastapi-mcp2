@@ -1,4 +1,5 @@
 from datetime import date
+from typing import Optional
 
 from services.expense_service import (
     add_expense,
@@ -37,8 +38,8 @@ def record_expense(
 
 
 def fetch_expenses(
-    user_id,
-    categories=[]
+    user_id: str,
+    categories: Optional[list[str]] = None
 ):
     expenses = get_expenses(
         user_id=user_id,

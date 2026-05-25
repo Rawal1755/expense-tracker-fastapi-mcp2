@@ -1,5 +1,7 @@
 import sys
 import os
+from typing import Optional
+
 sys.path.insert(0, os.path.dirname(__file__))
 from fastmcp import FastMCP
 
@@ -35,7 +37,7 @@ def add_expense_tool(
 @mcp.tool()
 def get_expenses_tool(
     user_id: str,
-    categories: list[str] = []
+    categories: Optional[list[str]] = None
 ):
     """
     Fetch expenses from the database.
@@ -89,4 +91,3 @@ def delete_expenses_tool(
         user_id=user_id,
         expense_ids=expense_ids
     )
-

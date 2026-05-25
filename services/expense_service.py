@@ -1,4 +1,5 @@
 from datetime import date
+from typing import Optional
 
 from database.connection import SessionLocal
 from database.models import Expense
@@ -26,75 +27,68 @@ def add_expense(
             f"Invalid category. Allowed categories: {ALLOWED_CATEGORIES}"
         )
 
-    db = SessionLocal()
-
     new_expense = Expense(
-    user_id=user_id,
-    amount=amount,
-    category=category,
-    description=description,
-    expense_date=expense_date
+        user_id=user_id,
+        amount=amount,
+        category=category,
+        description=description,
+        expense_date=expense_date
     )
 
-    db.add(new_expense)
-
-    db.commit()
-
-    db.refresh(new_expense)
-
-    db.close()
+    with SessionLocal() as db:
+        try:
+            db.add(new_expense)
+            db.commit()
+            db.refresh(new_expense)
+        except Exception:
+            db.rollback()
+            raise
 
     return new_expense
 
 
 
 def get_expenses(
-    user_id,
-    categories=[]
+    user_id: str,
+    categories: Optional[list[str]] = None
 ):
-    db = SessionLocal()
+    with SessionLocal() as db:
+        query = db.query(Expense)
 
-    query = db.query(Expense)
-
-    query = query.filter(
-        Expense.user_id == user_id
-    )
-
-    if categories:
         query = query.filter(
-            Expense.category.in_(categories)
+            Expense.user_id == user_id
         )
 
-    expenses = query.all()
+        if categories:
+            query = query.filter(
+                Expense.category.in_(categories)
+            )
 
-    db.close()
+        expenses = query.all()
 
     return expenses
 
 
 
 def get_expense_summary(user_id):
-    db = SessionLocal()
+    with SessionLocal() as db:
+        expenses = db.query(Expense).filter(
+            Expense.user_id == user_id
+        ).all()
 
-    expenses = db.query(Expense).filter(
-        Expense.user_id == user_id
-    ).all()
+        total_spending = 0
 
-    total_spending = 0
+        category_breakdown = {}
 
-    category_breakdown = {}
+        for expense in expenses:
+            total_spending += expense.amount
 
-    for expense in expenses:
-        total_spending += expense.amount
+            if expense.category not in category_breakdown:
+                category_breakdown[expense.category] = 0
 
-        if expense.category not in category_breakdown:
-            category_breakdown[expense.category] = 0
+            category_breakdown[expense.category] += expense.amount
 
-        category_breakdown[expense.category] += expense.amount
-
-    total_expenses = len(expenses)
-
-    db.close()
+        total_expenses = len(expenses)
 
     return {
         "user_id": user_id,
@@ -109,21 +103,22 @@ def delete_expenses(
     user_id,
     expense_ids
 ):
-    db = SessionLocal()
+    with SessionLocal() as db:
+        try:
+            expenses = db.query(Expense).filter(
+                Expense.user_id == user_id,
+                Expense.id.in_(expense_ids)
+            ).all()
 
-    expenses = db.query(Expense).filter(
-        Expense.user_id == user_id,
-        Expense.id.in_(expense_ids)
-    ).all()
+            deleted_count = len(expenses)
 
-    deleted_count = len(expenses)
+            for expense in expenses:
+                db.delete(expense)
 
-    for expense in expenses:
-        db.delete(expense)
-
-    db.commit()
-
-    db.close()
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
 
     return {
         "user_id": user_id,
