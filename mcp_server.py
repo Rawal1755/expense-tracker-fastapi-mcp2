@@ -1,3 +1,6 @@
+import sys
+import os
+sys.path.insert(0, os.path.dirname(__file__))
 from mcp.server.fastmcp import FastMCP
 
 from expense_mcp.tools.expense_tools import record_expense
@@ -87,5 +90,5 @@ def delete_expenses_tool(
         expense_ids=expense_ids
     )
 
-app = mcp
+app = mcp.streamable_http_app()
 
