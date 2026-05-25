@@ -90,5 +90,5 @@ def delete_expenses_tool(
         expense_ids=expense_ids
     )
 
-app = mcp.streamable_http_app()
+app = mcp
 
