@@ -1,7 +1,7 @@
 import sys
 import os
 sys.path.insert(0, os.path.dirname(__file__))
-from mcp.server.fastmcp import FastMCP
+from fastmcp import FastMCP
 
 from expense_mcp.tools.expense_tools import record_expense
 
