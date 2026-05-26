@@ -1,8 +1,12 @@
+import sys
+import os
 from typing import Optional
+
+sys.path.insert(0, os.path.dirname(__file__))
 
 from fastmcp import FastMCP
 
-from mcp_gateway.tools.expense_tools import (
+from tools.expense_tools import (
     fetch_expenses,
     fetch_expense_summary,
     record_expense,
