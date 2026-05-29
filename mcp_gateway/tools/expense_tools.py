@@ -94,6 +94,28 @@ def remove_expenses(
     return response.json()
 
 
+def convert_currency(amount: float, from_currency: str, to_currency: str) -> dict:
+    url = f"https://api.exchangerate-api.com/v4/latest/{from_currency.upper()}"
+
+    with httpx.Client(timeout=10.0) as client:
+        response = client.get(url)
+
+    if not response.is_success:
+        raise ValueError(f"Currency API failed with status {response.status_code}")
+
+    data = response.json()
+    rate = data["rates"][to_currency.upper()]
+    converted_amount = round(amount * rate, 2)
+
+    return {
+        "original_amount": amount,
+        "from_currency": from_currency.upper(),
+        "to_currency": to_currency.upper(),
+        "exchange_rate": rate,
+        "converted_amount": converted_amount
+    }
+
+
 def _raise_api_error(response: httpx.Response) -> None:
     if response.is_success:
         return
